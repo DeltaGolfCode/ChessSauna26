@@ -12,6 +12,7 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests/PaymentGateway.Logic.Tests/PaymentGateway.Logic.Tests.csproj" />
+    <Project Path="Tests/PaymentGatway.Api.IntegrationTests/PaymentGatway.Api.IntegrationTests.csproj" Id="04389c7c-2a19-44ef-8462-a48ed75461bd" />
   </Folder>
   <Project Path="PaymentGateway.Api/PaymentGateway.Api.csproj" />
   <Project Path="PaymentGateway.Logic/PaymentGateway.Logic.csproj" />

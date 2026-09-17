@@ -34,7 +34,15 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<PaymentGatewayDbContext>();
-    dbContext.Database.Migrate();
+
+    if (dbContext.Database.IsRelational())
+    {
+        dbContext.Database.Migrate();
+    }
+    else
+    {
+        dbContext.Database.EnsureCreated();
+    }
 }
 
 app.UseSerilogRequestLogging();
@@ -75,3 +83,5 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+public partial class Program;
