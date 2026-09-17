@@ -8,20 +8,6 @@ namespace PaymentGateway.Logic.Tests;
 [ExcludeFromCodeCoverage]
 public class RegisterExternalServicesTests
 {
-    private static IConfiguration CreateConfiguration(Dictionary<string, string?> settings)
-    {
-        return new ConfigurationBuilder()
-            .AddInMemoryCollection(settings)
-            .Build();
-    }
-
-    private static IHttpClientFactory BuildHttpClientFactory(IConfiguration configuration)
-    {
-        var services = new ServiceCollection();
-        services.RegisterServices(configuration);
-        return services.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
-    }
-
     [Fact]
     public void RegisterServices_ValidBaseUrl_ConfiguresClientWithBaseAddress()
     {
@@ -99,5 +85,19 @@ public class RegisterExternalServicesTests
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(() => httpClientFactory.CreateClient("BankGateway"));
         Assert.Equal("Invalid BankGateway BaseUrl format: not a valid url", exception.Message);
+    }
+
+    private static IConfiguration CreateConfiguration(Dictionary<string, string?> settings)
+    {
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(settings)
+            .Build();
+    }
+
+    private static IHttpClientFactory BuildHttpClientFactory(IConfiguration configuration)
+    {
+        var services = new ServiceCollection();
+        services.RegisterServices(configuration);
+        return services.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
     }
 }

@@ -13,34 +13,6 @@ namespace PaymentGateway.Logic.Tests.DataAccess.Repositories;
 [ExcludeFromCodeCoverage]
 public class PaymentHistoryRepositoryTests
 {
-    private static PaymentGatewayDbContext CreateDbContext()
-    {
-        var options = new DbContextOptionsBuilder<PaymentGatewayDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        return new PaymentGatewayDbContext(options);
-    }
-
-    private static PaymentHistory CreatePaymentHistory(Guid id, PaymentStatus status = PaymentStatus.Authorized)
-    {
-        return new PaymentHistory
-        {
-            Id = id,
-            Status = status,
-            Payment = new PaymentResponse
-            {
-                Id = id,
-                Status = status,
-                CardNumberLastFour = 9012,
-                ExpiryMonth = 12,
-                ExpiryYear = DateTime.UtcNow.Year + 1,
-                Currency = "GBP",
-                Amount = 100
-            }
-        };
-    }
-
     [Fact]
     public async Task CreateAsync_NewPaymentHistory_PersistsToDatabase()
     {
@@ -86,8 +58,9 @@ public class PaymentHistoryRepositoryTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(paymentHistory.Id, result.Id);
-        Assert.Equal(PaymentStatus.Declined, result.Status);
+        Assert.Multiple(
+            () => Assert.Equal(paymentHistory.Id, result.Id),
+            () => Assert.Equal(PaymentStatus.Declined, result.Status));
     }
 
     [Fact]
@@ -102,5 +75,33 @@ public class PaymentHistoryRepositoryTests
 
         // Assert
         Assert.Null(result);
+    }
+
+    private static PaymentGatewayDbContext CreateDbContext()
+    {
+        var options = new DbContextOptionsBuilder<PaymentGatewayDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        return new PaymentGatewayDbContext(options);
+    }
+
+    private static PaymentHistory CreatePaymentHistory(Guid id, PaymentStatus status = PaymentStatus.Authorized)
+    {
+        return new PaymentHistory
+        {
+            Id = id,
+            Status = status,
+            Payment = new PaymentResponse
+            {
+                Id = id,
+                Status = status,
+                CardNumberLastFour = 9012,
+                ExpiryMonth = 12,
+                ExpiryYear = DateTime.UtcNow.Year + 1,
+                Currency = "GBP",
+                Amount = 100
+            }
+        };
     }
 }

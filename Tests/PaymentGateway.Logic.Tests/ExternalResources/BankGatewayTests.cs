@@ -13,41 +13,6 @@ namespace PaymentGateway.Logic.Tests.ExternalResources;
 [ExcludeFromCodeCoverage]
 public class BankGatewayTests
 {
-    private sealed class FakeHttpMessageHandler(HttpResponseMessage response) : HttpMessageHandler
-    {
-        public HttpRequestMessage? LastRequest { get; private set; }
-
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            LastRequest = request;
-            return Task.FromResult(response);
-        }
-    }
-
-    private static PaymentRequest CreateValidPaymentRequest()
-    {
-        return new PaymentRequest
-        {
-            CardNumber = "4532123456789012",
-            ExpiryMonth = 12,
-            ExpiryYear = DateTime.UtcNow.Year + 1,
-            Currency = "GBP",
-            Amount = 100,
-            Cvv = "123"
-        };
-    }
-
-    private static (BankGateway Gateway, FakeHttpMessageHandler Handler) CreateGateway(HttpResponseMessage response)
-    {
-        var handler = new FakeHttpMessageHandler(response);
-        var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://bank.test") };
-
-        var httpClientFactory = Substitute.For<IHttpClientFactory>();
-        httpClientFactory.CreateClient("BankGateway").Returns(httpClient);
-
-        return (new BankGateway(httpClientFactory), handler);
-    }
-
     [Fact]
     public async Task SendPaymentRequestAsync_AuthorizedResponse_ReturnsDeserializedBankResponse()
     {
@@ -63,8 +28,9 @@ public class BankGatewayTests
         var result = await gateway.SendPaymentRequestAsync(CreateValidPaymentRequest());
 
         // Assert
-        Assert.True(result.Authorized);
-        Assert.Equal("ABC123", result.AuthorizationCode);
+        Assert.Multiple(
+            () => Assert.True(result.Authorized),
+            () => Assert.Equal("ABC123", result.AuthorizationCode));
     }
 
     [Fact]
@@ -81,8 +47,9 @@ public class BankGatewayTests
         await gateway.SendPaymentRequestAsync(CreateValidPaymentRequest());
 
         // Assert
-        Assert.Equal("/payments", handler.LastRequest?.RequestUri?.AbsolutePath);
-        Assert.Equal(HttpMethod.Post, handler.LastRequest?.Method);
+        Assert.Multiple(
+            () => Assert.Equal("/payments", handler.LastRequest?.RequestUri?.AbsolutePath),
+            () => Assert.Equal(HttpMethod.Post, handler.LastRequest?.Method));
     }
 
     [Fact]
@@ -132,5 +99,40 @@ public class BankGatewayTests
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => gateway.SendPaymentRequestAsync(CreateValidPaymentRequest()));
         Assert.Equal("Empty response from bank.", exception.Message);
+    }
+
+    private sealed class FakeHttpMessageHandler(HttpResponseMessage response) : HttpMessageHandler
+    {
+        public HttpRequestMessage? LastRequest { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            LastRequest = request;
+            return Task.FromResult(response);
+        }
+    }
+
+    private static PaymentRequest CreateValidPaymentRequest()
+    {
+        return new PaymentRequest
+        {
+            CardNumber = "4532123456789012",
+            ExpiryMonth = 12,
+            ExpiryYear = DateTime.UtcNow.Year + 1,
+            Currency = "GBP",
+            Amount = 100,
+            Cvv = "123"
+        };
+    }
+
+    private static (BankGateway Gateway, FakeHttpMessageHandler Handler) CreateGateway(HttpResponseMessage response)
+    {
+        var handler = new FakeHttpMessageHandler(response);
+        var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://bank.test") };
+
+        var httpClientFactory = Substitute.For<IHttpClientFactory>();
+        httpClientFactory.CreateClient("BankGateway").Returns(httpClient);
+
+        return (new BankGateway(httpClientFactory), handler);
     }
 }

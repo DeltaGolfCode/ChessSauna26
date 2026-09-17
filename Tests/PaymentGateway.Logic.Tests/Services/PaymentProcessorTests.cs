@@ -16,26 +16,6 @@ namespace PaymentGateway.Logic.Tests.Services;
 [ExcludeFromCodeCoverage]
 public class PaymentProcessorTests
 {
-    private static PaymentRequest CreateValidPaymentRequest()
-    {
-        return new PaymentRequest
-        {
-            CardNumber = "4532123456789012",
-            ExpiryMonth = 12,
-            ExpiryYear = DateTime.UtcNow.Year + 1,
-            Currency = "GBP",
-            Amount = 100,
-            Cvv = "123"
-        };
-    }
-
-    private static PaymentProcessor CreateProcessor(
-        IBankGateway bankGateway,
-        IPaymentHistoryRepository? paymentHistoryRepository = null)
-    {
-        return new PaymentProcessor(bankGateway, paymentHistoryRepository ?? Substitute.For<IPaymentHistoryRepository>());
-    }
-
     [Fact]
     public async Task ProcessPaymentAsync_InvalidCardNumber_ReturnsRejectedWithoutCallingBank()
     {
@@ -147,11 +127,12 @@ public class PaymentProcessorTests
         var response = await processor.ProcessPaymentAsync(request);
 
         // Assert
-        Assert.NotEqual(Guid.Empty, response.Id);
-        Assert.Equal(request.ExpiryMonth, response.ExpiryMonth);
-        Assert.Equal(request.ExpiryYear, response.ExpiryYear);
-        Assert.Equal(request.Currency, response.Currency);
-        Assert.Equal(request.Amount, response.Amount);
+        Assert.Multiple(
+            () => Assert.NotEqual(Guid.Empty, response.Id),
+            () => Assert.Equal(request.ExpiryMonth, response.ExpiryMonth),
+            () => Assert.Equal(request.ExpiryYear, response.ExpiryYear),
+            () => Assert.Equal(request.Currency, response.Currency),
+            () => Assert.Equal(request.Amount, response.Amount));
     }
 
     [Fact]
@@ -168,9 +149,10 @@ public class PaymentProcessorTests
         var response = await processor.ProcessPaymentAsync(request);
 
         // Assert
-        Assert.NotEqual(Guid.Empty, response.Id);
-        Assert.Equal(0, response.CardNumberLastFour);
-        Assert.Equal(PaymentStatus.Rejected, response.Status);
+        Assert.Multiple(
+            () => Assert.NotEqual(Guid.Empty, response.Id),
+            () => Assert.Equal(0, response.CardNumberLastFour),
+            () => Assert.Equal(PaymentStatus.Rejected, response.Status));
     }
 
     [Fact]
@@ -333,6 +315,26 @@ public class PaymentProcessorTests
 
         // Assert
         await paymentHistoryRepository.Received(1).GetByIdAsync(paymentReference);
+    }
+
+    private static PaymentRequest CreateValidPaymentRequest()
+    {
+        return new PaymentRequest
+        {
+            CardNumber = "4532123456789012",
+            ExpiryMonth = 12,
+            ExpiryYear = DateTime.UtcNow.Year + 1,
+            Currency = "GBP",
+            Amount = 100,
+            Cvv = "123"
+        };
+    }
+
+    private static PaymentProcessor CreateProcessor(
+        IBankGateway bankGateway,
+        IPaymentHistoryRepository? paymentHistoryRepository = null)
+    {
+        return new PaymentProcessor(bankGateway, paymentHistoryRepository ?? Substitute.For<IPaymentHistoryRepository>());
     }
 }
 

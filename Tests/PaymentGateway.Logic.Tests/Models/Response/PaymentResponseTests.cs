@@ -9,19 +9,6 @@ namespace PaymentGateway.Logic.Tests.Models.Response;
 [ExcludeFromCodeCoverage]
 public class PaymentResponseTests
 {
-    private static PaymentRequest CreateValidPaymentRequest()
-    {
-        return new PaymentRequest
-        {
-            CardNumber = "4532123456789012",
-            ExpiryMonth = 12,
-            ExpiryYear = DateTime.UtcNow.Year + 1,
-            Currency = "GBP",
-            Amount = 100,
-            Cvv = "123"
-        };
-    }
-
     [Fact]
     public void Constructor_ValidRequest_GeneratesNonEmptyId()
     {
@@ -107,5 +94,18 @@ public class PaymentResponseTests
 
         // Assert
         Assert.NotEqual(first.Id, second.Id);
+    }
+
+    private static PaymentRequest CreateValidPaymentRequest()
+    {
+        return new PaymentRequest
+        {
+            CardNumber = "4532123456789012",
+            ExpiryMonth = 12,
+            ExpiryYear = DateTime.UtcNow.Year + 1,
+            Currency = "GBP",
+            Amount = 100,
+            Cvv = "123"
+        };
     }
 }

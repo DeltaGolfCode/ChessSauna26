@@ -8,27 +8,6 @@ namespace PaymentGateway.Logic.Tests.Models.Request;
 [ExcludeFromCodeCoverage]
 public class PaymentRequestValidationTests
 {
-    private PaymentRequest CreateValidPaymentRequest()
-    {
-        return new PaymentRequest
-        {
-            CardNumber = "4532123456789012",
-            ExpiryMonth = 12,
-            ExpiryYear = DateTime.UtcNow.Year + 1,
-            Currency = "GBP",
-            Amount = 100,
-            Cvv = "123"
-        };
-    }
-
-    private IEnumerable<ValidationResult> ValidateRequest(PaymentRequest request)
-    {
-        var context = new ValidationContext(request);
-        var results = new List<ValidationResult>();
-        Validator.TryValidateObject(request, context, results, validateAllProperties: true);
-        return results;
-    }
-
     [Fact]
     public void CardNumber_Required_FailsWhenNull()
     {
@@ -427,6 +406,27 @@ public class PaymentRequestValidationTests
         // Assert
         var totalErrors = validationErrors.Concat(customValidationErrors);
         Assert.NotEmpty(totalErrors);
+    }
+
+    private PaymentRequest CreateValidPaymentRequest()
+    {
+        return new PaymentRequest
+        {
+            CardNumber = "4532123456789012",
+            ExpiryMonth = 12,
+            ExpiryYear = DateTime.UtcNow.Year + 1,
+            Currency = "GBP",
+            Amount = 100,
+            Cvv = "123"
+        };
+    }
+
+    private IEnumerable<ValidationResult> ValidateRequest(PaymentRequest request)
+    {
+        var context = new ValidationContext(request);
+        var results = new List<ValidationResult>();
+        Validator.TryValidateObject(request, context, results, validateAllProperties: true);
+        return results;
     }
 }
 
