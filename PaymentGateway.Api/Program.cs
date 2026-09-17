@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 using PaymentGateway.Logic;
 using PaymentGateway.Logic.DataAccess.EntityMapping;
+using PaymentGateway.Logic.DataAccess.Interfaces;
 using PaymentGateway.Logic.Models.Request;
 using PaymentGateway.Logic.Services.Interfaces;
 
@@ -26,11 +27,15 @@ builder.Host.UseSerilog();
 builder.Services.AddOpenApi();
 builder.Services.RegisterPaymentGatewayLogic();
 builder.Services.RegisterServices(builder.Configuration);
-
-//builder.Services.AddDbContext<PaymentGatewayDbContext>(options =>
-//    options.UseSqlServer(builder.Configuration.GetConnectionString("PaymentGateway")));
+builder.Services.RegisterDataAccess(builder.Configuration);
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<PaymentGatewayDbContext>();
+    dbContext.Database.Migrate();
+}
 
 app.UseSerilogRequestLogging();
 
@@ -55,9 +60,10 @@ app.MapPost("api/payments", async (PaymentRequest request, IPaymentProcessor pro
 })
 .WithName("ProcessPayment");
 
-app.MapGet("api/payments/{id}", (int id) =>
+app.MapGet("api/payments/{id}", async (Guid id, IPaymentHistoryRepository paymentHistoryRepository) =>
 {
-    return new { Message = "Payments API is working!" };
+    var paymentHistory = await paymentHistoryRepository.GetByIdAsync(id);
+    return paymentHistory is null ? Results.NotFound() : Results.Ok(paymentHistory.Payment);
 })
 .WithName("GetPaymentDetails");
 

@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
+using PaymentGateway.Logic.DataAccess.DataModels;
+using PaymentGateway.Logic.DataAccess.Interfaces;
 using PaymentGateway.Logic.Enums;
 using PaymentGateway.Logic.ExternalResources.Interfaces;
 using PaymentGateway.Logic.Models.Request;
@@ -8,28 +10,39 @@ using PaymentGateway.Logic.Services.Interfaces;
 
 namespace PaymentGateway.Logic.Services;
 
-public class PaymentProcessor(IBankGateway _bankGateway) : IPaymentProcessor
+public class PaymentProcessor(IBankGateway _bankGateway, IPaymentHistoryRepository _paymentHistoryRepository) : IPaymentProcessor
 {
     public async Task<PaymentResponse> ProcessPaymentAsync(PaymentRequest paymentDetails)
     {
         var validationContext = new ValidationContext(paymentDetails);
         var validationResults = new List<ValidationResult>();
 
+        PaymentResponse paymentResponse = null;
+
         if (!Validator.TryValidateObject(paymentDetails, validationContext, validationResults, validateAllProperties: true))
         {
-            return new PaymentResponse(paymentDetails, PaymentStatus.Rejected);
+            paymentResponse = new PaymentResponse(paymentDetails, PaymentStatus.Rejected);
+        }
+        else
+        { 
+            var bankResponse = await _bankGateway.SendPaymentRequestAsync(paymentDetails);
+
+            paymentResponse = new PaymentResponse(paymentDetails, PaymentStatus.Declined);
+
+            if (bankResponse.Authorized)
+            {
+                paymentResponse.Status = PaymentStatus.Authorized;
+            }
         }
 
-        var bankResponse = await _bankGateway.SendPaymentRequestAsync(paymentDetails);
-
-        var response = new PaymentResponse(paymentDetails, PaymentStatus.Declined); 
-
-        if (bankResponse.Authorized)
+        await _paymentHistoryRepository.CreateAsync(new PaymentHistory
         {
-            response.Status = PaymentStatus.Authorized;
-        }
+            Id = paymentResponse.Id,
+            Status = paymentResponse.Status,
+            Payment = paymentResponse
+        });
 
-        return response;
+        return paymentResponse;
     }
 }
 

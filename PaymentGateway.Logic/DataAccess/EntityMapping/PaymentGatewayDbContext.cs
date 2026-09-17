@@ -4,6 +4,8 @@ using System.Text;
 
 using Microsoft.EntityFrameworkCore;
 
+using PaymentGateway.Logic.DataAccess.DataModels;
+
 namespace PaymentGateway.Logic.DataAccess.EntityMapping;
 
 public class PaymentGatewayDbContext : DbContext
@@ -12,6 +14,10 @@ public class PaymentGatewayDbContext : DbContext
         : base(options)
     {
     }
+
+    public DbSet<PaymentHistory> PaymentHistories => Set<PaymentHistory>();
+
+    public DbSet<PaymentStatusLookup> PaymentStatuses => Set<PaymentStatusLookup>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -7,17 +7,18 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["PaymentGateway/PaymentGateway.csproj", "PaymentGateway/"]
-RUN dotnet restore "./PaymentGateway/PaymentGateway.csproj"
+COPY ["PaymentGateway.Api/PaymentGateway.Api.csproj", "PaymentGateway.Api/"]
+COPY ["PaymentGateway.Logic/PaymentGateway.Logic.csproj", "PaymentGateway.Logic/"]
+RUN dotnet restore "./PaymentGateway.Api/PaymentGateway.Api.csproj"
 COPY . .
-WORKDIR "/src/PaymentGateway"
-RUN dotnet build "./PaymentGateway.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/PaymentGateway.Api"
+RUN dotnet build "./PaymentGateway.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./PaymentGateway.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./PaymentGateway.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "PaymentGateway.dll"]
+ENTRYPOINT ["dotnet", "PaymentGateway.Api.dll"]
