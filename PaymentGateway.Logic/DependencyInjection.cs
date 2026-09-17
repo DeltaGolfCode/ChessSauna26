@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +10,7 @@ using PaymentGateway.Logic.DataAccess.Repositories;
 
 namespace PaymentGateway.Logic;
 
+[ExcludeFromCodeCoverage]
 public static class DependencyInjection
 {
     public static void RegisterPaymentGatewayLogic(this IServiceCollection services)

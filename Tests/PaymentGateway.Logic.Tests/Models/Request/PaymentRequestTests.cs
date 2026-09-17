@@ -1,9 +1,11 @@
-﻿using PaymentGateway.Logic.Models.Request;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
-using System.ComponentModel.DataAnnotations;
+using PaymentGateway.Logic.Models.Request;
 
 namespace PaymentGateway.Logic.Tests.Models.Request;
 
+[ExcludeFromCodeCoverage]
 public class PaymentRequestValidationTests
 {
     private PaymentRequest CreateValidPaymentRequest()

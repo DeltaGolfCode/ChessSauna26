@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -9,6 +10,7 @@ using PaymentGateway.Logic.Models.Request;
 
 namespace PaymentGateway.Logic.Tests.ExternalResources;
 
+[ExcludeFromCodeCoverage]
 public class BankGatewayTests
 {
     private sealed class FakeHttpMessageHandler(HttpResponseMessage response) : HttpMessageHandler

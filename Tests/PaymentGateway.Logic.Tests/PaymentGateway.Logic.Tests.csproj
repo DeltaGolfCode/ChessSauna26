@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <VSTestSetting>coverlet.runsettings</VSTestSetting>
   </PropertyGroup>
 
   <ItemGroup>

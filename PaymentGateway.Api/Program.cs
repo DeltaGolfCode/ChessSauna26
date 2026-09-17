@@ -60,10 +60,10 @@ app.MapPost("api/payments", async (PaymentRequest request, IPaymentProcessor pro
 })
 .WithName("ProcessPayment");
 
-app.MapGet("api/payments/{id}", async (Guid id, IPaymentHistoryRepository paymentHistoryRepository) =>
+app.MapGet("api/payments/{id}", async (Guid id, IPaymentProcessor processingLogic) =>
 {
-    var paymentHistory = await paymentHistoryRepository.GetByIdAsync(id);
-    return paymentHistory is null ? Results.NotFound() : Results.Ok(paymentHistory.Payment);
+    var paymentResponse = await processingLogic.RetrievePaymentInformationAsync(id);
+    return paymentResponse is null ? Results.NotFound() : Results.Ok(paymentResponse);
 })
 .WithName("GetPaymentDetails");
 

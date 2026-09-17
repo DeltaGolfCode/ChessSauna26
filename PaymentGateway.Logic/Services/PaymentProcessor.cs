@@ -44,5 +44,11 @@ public class PaymentProcessor(IBankGateway _bankGateway, IPaymentHistoryReposito
 
         return paymentResponse;
     }
+
+    public async Task<PaymentResponse?> RetrievePaymentInformationAsync(Guid paymentReference)
+    {
+        var paymentHistory = await _paymentHistoryRepository.GetByIdAsync(paymentReference);
+        return paymentHistory?.Payment;
+    }
 }
 

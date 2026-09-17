@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.EntityFrameworkCore;
 
 using PaymentGateway.Logic.DataAccess.DataModels;
@@ -8,6 +10,7 @@ using PaymentGateway.Logic.Models.Response;
 
 namespace PaymentGateway.Logic.Tests.DataAccess.Repositories;
 
+[ExcludeFromCodeCoverage]
 public class PaymentHistoryRepositoryTests
 {
     private static PaymentGatewayDbContext CreateDbContext()

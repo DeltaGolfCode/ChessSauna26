@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace PaymentGateway.Logic.Tests;
 
+[ExcludeFromCodeCoverage]
 public class RegisterExternalServicesTests
 {
     private static IConfiguration CreateConfiguration(Dictionary<string, string?> settings)

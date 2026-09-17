@@ -1,14 +1,19 @@
+using System.Diagnostics.CodeAnalysis;
+
 using NSubstitute;
+
 using PaymentGateway.Logic.DataAccess.DataModels;
 using PaymentGateway.Logic.DataAccess.Interfaces;
 using PaymentGateway.Logic.Enums;
 using PaymentGateway.Logic.ExternalResources.Interfaces;
 using PaymentGateway.Logic.ExternalResources.Models.Response;
 using PaymentGateway.Logic.Models.Request;
+using PaymentGateway.Logic.Models.Response;
 using PaymentGateway.Logic.Services;
 
 namespace PaymentGateway.Logic.Tests.Services;
 
+[ExcludeFromCodeCoverage]
 public class PaymentProcessorTests
 {
     private static PaymentRequest CreateValidPaymentRequest()
@@ -261,7 +266,73 @@ public class PaymentProcessorTests
             h.Status == PaymentStatus.Rejected &&
             h.Payment == response));
     }
+
+    [Fact]
+    public async Task RetrievePaymentInformationAsync_ExistingReference_ReturnsAssociatedPayment()
+    {
+        // Arrange
+        var paymentReference = Guid.NewGuid();
+        var expectedPayment = new PaymentResponse
+        {
+            Id = paymentReference,
+            Status = PaymentStatus.Authorized
+        };
+        var paymentHistory = new PaymentHistory
+        {
+            Id = paymentReference,
+            Status = PaymentStatus.Authorized,
+            Payment = expectedPayment
+        };
+
+        var bankGateway = Substitute.For<IBankGateway>();
+        var paymentHistoryRepository = Substitute.For<IPaymentHistoryRepository>();
+        paymentHistoryRepository.GetByIdAsync(paymentReference).Returns(paymentHistory);
+
+        var processor = CreateProcessor(bankGateway, paymentHistoryRepository);
+
+        // Act
+        var result = await processor.RetrievePaymentInformationAsync(paymentReference);
+
+        // Assert
+        Assert.Same(expectedPayment, result);
+    }
+
+    [Fact]
+    public async Task RetrievePaymentInformationAsync_UnknownReference_ReturnsNull()
+    {
+        // Arrange
+        var paymentReference = Guid.NewGuid();
+
+        var bankGateway = Substitute.For<IBankGateway>();
+        var paymentHistoryRepository = Substitute.For<IPaymentHistoryRepository>();
+        paymentHistoryRepository.GetByIdAsync(paymentReference).Returns((PaymentHistory?)null);
+
+        var processor = CreateProcessor(bankGateway, paymentHistoryRepository);
+
+        // Act
+        var result = await processor.RetrievePaymentInformationAsync(paymentReference);
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task RetrievePaymentInformationAsync_ValidReference_QueriesRepositoryWithProvidedReference()
+    {
+        // Arrange
+        var paymentReference = Guid.NewGuid();
+
+        var bankGateway = Substitute.For<IBankGateway>();
+        var paymentHistoryRepository = Substitute.For<IPaymentHistoryRepository>();
+        paymentHistoryRepository.GetByIdAsync(paymentReference).Returns((PaymentHistory?)null);
+
+        var processor = CreateProcessor(bankGateway, paymentHistoryRepository);
+
+        // Act
+        await processor.RetrievePaymentInformationAsync(paymentReference);
+
+        // Assert
+        await paymentHistoryRepository.Received(1).GetByIdAsync(paymentReference);
+    }
 }
-
-
 

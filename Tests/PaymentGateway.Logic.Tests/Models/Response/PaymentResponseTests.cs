@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 using PaymentGateway.Logic.Enums;
 using PaymentGateway.Logic.Models.Request;
 using PaymentGateway.Logic.Models.Response;
 
 namespace PaymentGateway.Logic.Tests.Models.Response;
 
+[ExcludeFromCodeCoverage]
 public class PaymentResponseTests
 {
     private static PaymentRequest CreateValidPaymentRequest()
