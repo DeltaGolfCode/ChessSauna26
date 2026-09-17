@@ -6,7 +6,7 @@ using PaymentGateway.Logic.DataAccess.Interfaces;
 
 namespace PaymentGateway.Logic.DataAccess.Repositories;
 
-internal class PaymentHistoryRepository(PaymentGatewayDbContext _dbContext) : IPaymentHistoryRepository
+public class PaymentHistoryRepository(PaymentGatewayDbContext _dbContext) : IPaymentHistoryRepository
 {
     public async Task<PaymentHistory> CreateAsync(PaymentHistory paymentHistory, CancellationToken cancellationToken = default)
     {

@@ -1,4 +1,6 @@
 using NSubstitute;
+using PaymentGateway.Logic.DataAccess.DataModels;
+using PaymentGateway.Logic.DataAccess.Interfaces;
 using PaymentGateway.Logic.Enums;
 using PaymentGateway.Logic.ExternalResources.Interfaces;
 using PaymentGateway.Logic.ExternalResources.Models.Response;
@@ -22,6 +24,13 @@ public class PaymentProcessorTests
         };
     }
 
+    private static PaymentProcessor CreateProcessor(
+        IBankGateway bankGateway,
+        IPaymentHistoryRepository? paymentHistoryRepository = null)
+    {
+        return new PaymentProcessor(bankGateway, paymentHistoryRepository ?? Substitute.For<IPaymentHistoryRepository>());
+    }
+
     [Fact]
     public async Task ProcessPaymentAsync_InvalidCardNumber_ReturnsRejectedWithoutCallingBank()
     {
@@ -30,7 +39,7 @@ public class PaymentProcessorTests
         request.CardNumber = "123";
 
         var bankGateway = Substitute.For<IBankGateway>();
-        var processor = new PaymentProcessor(bankGateway);
+        var processor = CreateProcessor(bankGateway);
 
         // Act
         var response = await processor.ProcessPaymentAsync(request);
@@ -48,7 +57,7 @@ public class PaymentProcessorTests
         request.ExpiryYear = DateTime.UtcNow.Year - 1;
 
         var bankGateway = Substitute.For<IBankGateway>();
-        var processor = new PaymentProcessor(bankGateway);
+        var processor = CreateProcessor(bankGateway);
 
         // Act
         var response = await processor.ProcessPaymentAsync(request);
@@ -68,7 +77,7 @@ public class PaymentProcessorTests
         var bankGateway = Substitute.For<IBankGateway>();
         bankGateway.SendPaymentRequestAsync(request).Returns(bankResponse);
 
-        var processor = new PaymentProcessor(bankGateway);
+        var processor = CreateProcessor(bankGateway);
 
         // Act
         var response = await processor.ProcessPaymentAsync(request);
@@ -88,7 +97,7 @@ public class PaymentProcessorTests
         var bankGateway = Substitute.For<IBankGateway>();
         bankGateway.SendPaymentRequestAsync(request).Returns(bankResponse);
 
-        var processor = new PaymentProcessor(bankGateway);
+        var processor = CreateProcessor(bankGateway);
 
         // Act
         var response = await processor.ProcessPaymentAsync(request);
@@ -108,7 +117,7 @@ public class PaymentProcessorTests
         var bankGateway = Substitute.For<IBankGateway>();
         bankGateway.SendPaymentRequestAsync(request).Returns(bankResponse);
 
-        var processor = new PaymentProcessor(bankGateway);
+        var processor = CreateProcessor(bankGateway);
 
         // Act
         var response = await processor.ProcessPaymentAsync(request);
@@ -127,13 +136,13 @@ public class PaymentProcessorTests
         var bankGateway = Substitute.For<IBankGateway>();
         bankGateway.SendPaymentRequestAsync(request).Returns(bankResponse);
 
-        var processor = new PaymentProcessor(bankGateway);
+        var processor = CreateProcessor(bankGateway);
 
         // Act
         var response = await processor.ProcessPaymentAsync(request);
 
         // Assert
-        Assert.NotNull(response.Id);
+        Assert.NotEqual(Guid.Empty, response.Id);
         Assert.Equal(request.ExpiryMonth, response.ExpiryMonth);
         Assert.Equal(request.ExpiryYear, response.ExpiryYear);
         Assert.Equal(request.Currency, response.Currency);
@@ -148,13 +157,13 @@ public class PaymentProcessorTests
         request.CardNumber = "123";
 
         var bankGateway = Substitute.For<IBankGateway>();
-        var processor = new PaymentProcessor(bankGateway);
+        var processor = CreateProcessor(bankGateway);
 
         // Act
         var response = await processor.ProcessPaymentAsync(request);
 
         // Assert
-        Assert.NotNull(response.Id);
+        Assert.NotEqual(Guid.Empty, response.Id);
         Assert.Equal(0, response.CardNumberLastFour);
         Assert.Equal(PaymentStatus.Rejected, response.Status);
     }
@@ -174,7 +183,7 @@ public class PaymentProcessorTests
         };
 
         var bankGateway = Substitute.For<IBankGateway>();
-        var processor = new PaymentProcessor(bankGateway);
+        var processor = CreateProcessor(bankGateway);
 
         // Act
         var response = await processor.ProcessPaymentAsync(request);
@@ -194,7 +203,7 @@ public class PaymentProcessorTests
         var bankGateway = Substitute.For<IBankGateway>();
         bankGateway.SendPaymentRequestAsync(request).Returns(bankResponse);
 
-        var processor = new PaymentProcessor(bankGateway);
+        var processor = CreateProcessor(bankGateway);
 
         // Act
         var response = await processor.ProcessPaymentAsync(request);
@@ -207,6 +216,50 @@ public class PaymentProcessorTests
             r.Cvv == request.Cvv &&
             r.Currency == request.Currency &&
             r.Amount == request.Amount));
+    }
+
+    [Fact]
+    public async Task ProcessPaymentAsync_ValidRequest_SavesAuthorizedPaymentToHistory()
+    {
+        // Arrange
+        var request = CreateValidPaymentRequest();
+        var bankResponse = new BankPaymentResponse { Authorized = true };
+
+        var bankGateway = Substitute.For<IBankGateway>();
+        bankGateway.SendPaymentRequestAsync(request).Returns(bankResponse);
+
+        var paymentHistoryRepository = Substitute.For<IPaymentHistoryRepository>();
+        var processor = CreateProcessor(bankGateway, paymentHistoryRepository);
+
+        // Act
+        var response = await processor.ProcessPaymentAsync(request);
+
+        // Assert
+        await paymentHistoryRepository.Received(1).CreateAsync(Arg.Is<PaymentHistory>(h =>
+            h.Id == response.Id &&
+            h.Status == PaymentStatus.Authorized &&
+            h.Payment == response));
+    }
+
+    [Fact]
+    public async Task ProcessPaymentAsync_InvalidRequest_SavesRejectedPaymentToHistory()
+    {
+        // Arrange
+        var request = CreateValidPaymentRequest();
+        request.CardNumber = "123";
+
+        var bankGateway = Substitute.For<IBankGateway>();
+        var paymentHistoryRepository = Substitute.For<IPaymentHistoryRepository>();
+        var processor = CreateProcessor(bankGateway, paymentHistoryRepository);
+
+        // Act
+        var response = await processor.ProcessPaymentAsync(request);
+
+        // Assert
+        await paymentHistoryRepository.Received(1).CreateAsync(Arg.Is<PaymentHistory>(h =>
+            h.Id == response.Id &&
+            h.Status == PaymentStatus.Rejected &&
+            h.Payment == response));
     }
 }
 

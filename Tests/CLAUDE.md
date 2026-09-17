@@ -65,6 +65,24 @@ var exception = Assert.Throws<InsufficientFundsException>(() => sut.Withdraw(100
 Assert.Equal("Insufficient funds for withdrawal.", exception.Message);
 ```
 
+### Assert.Multiple and fail-fast guards
+
+- Where a test makes several assertions about the same logical concept, wrap them in `Assert.Multiple` (available in xUnit v3) so every failure is reported in one run instead of stopping at the first one.
+- Any assertion that *guards* the ones after it — a null check on a value the later assertions dereference, a collection count/length check before indexing into it, a type check before casting — must run before `Assert.Multiple` and outside of it, as its own plain `Assert` call. Guards must fail fast on their own: if a guard fails, the assertions depending on it are meaningless (or would throw `NullReferenceException`/`IndexOutOfRangeException` instead of a clean assertion failure), so the test should stop there rather than have the guard swallowed into the aggregated `Assert.Multiple` result.
+
+```csharp
+// Arrange / Act as usual, producing `response`
+
+// Assert
+Assert.NotNull(response);
+Assert.Equal(3, response.Items.Count);
+
+Assert.Multiple(
+    () => Assert.Equal("A", response.Items[0].Name),
+    () => Assert.Equal("B", response.Items[1].Name),
+    () => Assert.Equal("C", response.Items[2].Name));
+```
+
 ## Test independence and cleanliness
 
 - Tests must not depend on execution order or shared mutable state. Each test creates its own SUT and substitutes; don't reuse substitutes across tests via shared fields unless reset in a constructor (xUnit creates a new test class instance per test, so constructor-based setup is safe).

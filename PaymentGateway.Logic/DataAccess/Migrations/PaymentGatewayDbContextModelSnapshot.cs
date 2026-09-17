@@ -8,82 +8,81 @@ using PaymentGateway.Logic.DataAccess.EntityMapping;
 
 #nullable disable
 
-namespace PaymentGateway.Logic.DataAccess.Migrations
+namespace PaymentGateway.Logic.DataAccess.Migrations;
+
+[DbContext(typeof(PaymentGatewayDbContext))]
+partial class PaymentGatewayDbContextModelSnapshot : ModelSnapshot
 {
-    [DbContext(typeof(PaymentGatewayDbContext))]
-    partial class PaymentGatewayDbContextModelSnapshot : ModelSnapshot
+    protected override void BuildModel(ModelBuilder modelBuilder)
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
-        {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+        modelBuilder
+            .HasAnnotation("ProductVersion", "10.0.12")
+            .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+        SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("PaymentGateway.Logic.DataAccess.DataModels.PaymentHistory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
+        modelBuilder.Entity("PaymentGateway.Logic.DataAccess.DataModels.PaymentHistory", b =>
+            {
+                b.Property<Guid>("Id")
+                    .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Payment")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Payment");
+                b.Property<string>("Payment")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)")
+                    .HasColumnName("Payment");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                b.Property<int>("Status")
+                    .HasColumnType("int");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.HasIndex("Status");
+                b.HasIndex("Status");
 
-                    b.ToTable("PaymentHistories", (string)null);
-                });
+                b.ToTable("PaymentHistories", (string)null);
+            });
 
-            modelBuilder.Entity("PaymentGateway.Logic.DataAccess.DataModels.PaymentStatusLookup", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
+        modelBuilder.Entity("PaymentGateway.Logic.DataAccess.DataModels.PaymentStatusLookup", b =>
+            {
+                b.Property<int>("Id")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
 
-                    b.HasKey("Id");
+                b.HasKey("Id");
 
-                    b.ToTable("PaymentStatuses", (string)null);
+                b.ToTable("PaymentStatuses", (string)null);
 
-                    b.HasData(
-                        new
-                        {
-                            Id = 0,
-                            Name = "Authorized"
-                        },
-                        new
-                        {
-                            Id = 1,
-                            Name = "Declined"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Rejected"
-                        });
-                });
+                b.HasData(
+                    new
+                    {
+                        Id = 0,
+                        Name = "Authorized"
+                    },
+                    new
+                    {
+                        Id = 1,
+                        Name = "Declined"
+                    },
+                    new
+                    {
+                        Id = 2,
+                        Name = "Rejected"
+                    });
+            });
 
-            modelBuilder.Entity("PaymentGateway.Logic.DataAccess.DataModels.PaymentHistory", b =>
-                {
-                    b.HasOne("PaymentGateway.Logic.DataAccess.DataModels.PaymentStatusLookup", null)
-                        .WithMany()
-                        .HasForeignKey("Status")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_PaymentHistories_PaymentStatuses_Status");
-                });
+        modelBuilder.Entity("PaymentGateway.Logic.DataAccess.DataModels.PaymentHistory", b =>
+            {
+                b.HasOne("PaymentGateway.Logic.DataAccess.DataModels.PaymentStatusLookup", null)
+                    .WithMany()
+                    .HasForeignKey("Status")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired()
+                    .HasConstraintName("FK_PaymentHistories_PaymentStatuses_Status");
+            });
 #pragma warning restore 612, 618
-        }
     }
 }
