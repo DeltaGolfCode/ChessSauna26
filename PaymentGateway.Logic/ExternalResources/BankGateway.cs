@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Json;
 
 using PaymentGateway.Logic.ExternalResources.Interfaces;
+using PaymentGateway.Logic.ExternalResources.Models.Request;
 using PaymentGateway.Logic.ExternalResources.Models.Response;
 using PaymentGateway.Logic.Models.Request;
 
@@ -19,7 +20,7 @@ public class BankGateway : IBankGateway
     {
         var client = _httpClientFactory.CreateClient("BankGateway");
 
-        var response = await client.PostAsJsonAsync("payments", paymentDetails);
+        using var response = await client.PostAsJsonAsync("/payments", new BankPaymentRequest(paymentDetails));
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<BankPaymentResponse>()

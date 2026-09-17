@@ -13,7 +13,8 @@ namespace PaymentGateway.Logic.Models.Request
         [Range(1, 12, ErrorMessage = "Invalid expiry month")]
         public int ExpiryMonth { get; set; }
 
-        [Required]        
+        [Required]
+        [Range(2026, 2126, ErrorMessage = "Invalid expiry year")]
         public int ExpiryYear { get; set; }
 
         [Required]
@@ -44,7 +45,7 @@ namespace PaymentGateway.Logic.Models.Request
                     [nameof(ExpiryMonth), nameof(ExpiryYear)]);
             }
 
-            if (!AllowedCurrencies.Contains(Currency))
+            if (!AllowedCurrencies.Contains(Currency, StringComparer.OrdinalIgnoreCase))
             {
                 yield return new ValidationResult(
                     $"Currency code is not recognised",

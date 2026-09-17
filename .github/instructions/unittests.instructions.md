@@ -4,7 +4,17 @@ applyTo: "Tests/**/*.cs"
 
 # Unit test instructions
 
-These instructions apply to all unit tests in this repository. Tests are written in C# using **xUnit** as the test framework and **NSubstitute** for mocking/stubbing dependencies.
+These instructions apply to all unit tests in this repository. Tests are written in C# using **xUnit** (v3) as the test framework and **NSubstitute** for mocking/stubbing dependencies.
+
+## Required NuGet Packages
+
+The test projects must include the following approved packages:
+
+- **NSubstitute** (6.2.0 or later) — for creating mocks and stubs of dependencies
+- **xunit.v3** (4.0.1 or later) — the xUnit test framework
+- **xunit.runner.visualstudio** — Visual Studio test runner integration
+
+**Note:** The deprecated `xunit` package (previously v2.9.3 and earlier) should never be used. Always use `xunit.v3` instead.
 
 ## Structure: Arrange, Act, Assert
 

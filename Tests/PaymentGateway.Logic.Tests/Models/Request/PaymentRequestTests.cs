@@ -38,7 +38,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.CardNumber))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.CardNumber)));
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.CardNumber))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.CardNumber)));
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.CardNumber))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.CardNumber)));
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.CardNumber))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.CardNumber)));
     }
 
     [Theory]
@@ -97,7 +97,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.False(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.CardNumber))));
+        Assert.Empty(validationErrors.Where(e => e.MemberNames.Contains(nameof(PaymentRequest.CardNumber))));
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.ExpiryMonth))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.ExpiryMonth)));
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.ExpiryMonth))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.ExpiryMonth)));
     }
 
     [Theory]
@@ -142,7 +142,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.False(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.ExpiryMonth))));
+        Assert.Empty(validationErrors.Where(e => e.MemberNames.Contains(nameof(PaymentRequest.ExpiryMonth))));
     }
 
     [Fact]
@@ -156,7 +156,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Currency))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.Currency)));
     }
 
     [Fact]
@@ -170,7 +170,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Currency))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.Currency)));
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Currency))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.Currency)));
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public class PaymentRequestValidationTests
         var customValidationErrors = request.Validate(new ValidationContext(request));
 
         // Assert
-        Assert.True(customValidationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Currency))));
+        Assert.Single(customValidationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.Currency)));
     }
 
     [Theory]
@@ -215,7 +215,7 @@ public class PaymentRequestValidationTests
         var customValidationErrors = request.Validate(new ValidationContext(request));
 
         // Assert
-        Assert.False(customValidationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Currency))));
+        Assert.Empty(customValidationErrors.Where(e => e.MemberNames.Contains(nameof(PaymentRequest.Currency))));
     }
 
     [Fact]
@@ -229,7 +229,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Amount))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.Amount)));
     }
 
     [Fact]
@@ -243,7 +243,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Amount))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.Amount)));
     }
 
     [Theory]
@@ -260,7 +260,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.False(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Amount))));
+        Assert.Empty(validationErrors.Where(e => e.MemberNames.Contains(nameof(PaymentRequest.Amount))));
     }
 
     [Fact]
@@ -274,7 +274,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Cvv))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.Cvv)));
     }
 
     [Fact]
@@ -288,7 +288,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Cvv))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.Cvv)));
     }
 
     [Fact]
@@ -302,7 +302,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Cvv))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.Cvv)));
     }
 
     [Fact]
@@ -316,7 +316,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.True(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Cvv))));
+        Assert.Single(validationErrors, e => e.MemberNames.Contains(nameof(PaymentRequest.Cvv)));
     }
 
     [Theory]
@@ -332,7 +332,7 @@ public class PaymentRequestValidationTests
         var validationErrors = ValidateRequest(request);
 
         // Assert
-        Assert.False(validationErrors?.Any(e => e.MemberNames.Contains(nameof(PaymentRequest.Cvv))));
+        Assert.Empty(validationErrors.Where(e => e.MemberNames.Contains(nameof(PaymentRequest.Cvv))));
     }
 
     [Fact]
@@ -344,12 +344,13 @@ public class PaymentRequestValidationTests
         request.ExpiryMonth = 1;
 
         // Act
-        var customValidationErrors = request.Validate(new ValidationContext(request));
+        var customValidationErrors = request.Validate(new ValidationContext(request)).ToList();
 
         // Assert
-        Assert.True(customValidationErrors?.Any(e =>
+        Assert.NotEmpty(customValidationErrors);
+        Assert.Single(customValidationErrors, e => 
             e.MemberNames.Contains(nameof(PaymentRequest.ExpiryMonth)) ||
-            e.MemberNames.Contains(nameof(PaymentRequest.ExpiryYear))));
+            e.MemberNames.Contains(nameof(PaymentRequest.ExpiryYear)));
     }
 
     [Fact]
@@ -363,10 +364,10 @@ public class PaymentRequestValidationTests
         request.ExpiryMonth = nextMonth.Month;
 
         // Act
-        var customValidationErrors = request.Validate(new ValidationContext(request));
+        var customValidationErrors = request.Validate(new ValidationContext(request)).ToList();
 
         // Assert
-        Assert.False(customValidationErrors?.Any(e =>
+        Assert.Empty(customValidationErrors.Where(e =>
             e.MemberNames.Contains(nameof(PaymentRequest.ExpiryMonth)) ||
             e.MemberNames.Contains(nameof(PaymentRequest.ExpiryYear))));
     }
@@ -380,10 +381,10 @@ public class PaymentRequestValidationTests
         request.ExpiryMonth = 12;
 
         // Act
-        var customValidationErrors = request.Validate(new ValidationContext(request));
+        var customValidationErrors = request.Validate(new ValidationContext(request)).ToList();
 
         // Assert
-        Assert.False(customValidationErrors?.Any(e =>
+        Assert.Empty(customValidationErrors.Where(e =>
             e.MemberNames.Contains(nameof(PaymentRequest.ExpiryMonth)) ||
             e.MemberNames.Contains(nameof(PaymentRequest.ExpiryYear))));
     }

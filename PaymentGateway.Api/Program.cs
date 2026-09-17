@@ -24,16 +24,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
 builder.Services.AddOpenApi();
+builder.Services.RegisterPaymentGatewayLogic();
+builder.Services.RegisterServices(builder.Configuration);
+
+//builder.Services.AddDbContext<PaymentGatewayDbContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("PaymentGateway")));
 
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
-
-builder.Services.AddDbContext<PaymentGatewayDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("PaymentGateway")));
-
-builder.Services.RegisterPaymentGatewayLogic();
-builder.Services.RegisterServices(builder.Configuration);
 
 if (app.Environment.IsDevelopment())
 {
@@ -49,9 +48,9 @@ app.UseHttpsRedirection();
 app.MapPost("api/payments", async (PaymentRequest request, IPaymentProcessor processingLogic) =>
 {
     var result = await processingLogic.ProcessPaymentAsync(request);
-    return new 
-    { 
-        Message = result 
+    return new
+    {
+        Message = result
     };
 })
 .WithName("ProcessPayment");

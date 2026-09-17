@@ -13,7 +13,9 @@ namespace PaymentGateway.Logic.Models.Response
         {
             Id = Guid.NewGuid();
             Status = status;
-            CardNumberLastFour = int.Parse(request.CardNumber[^4..]);
+            CardNumberLastFour = !string.IsNullOrEmpty(request.CardNumber) && request.CardNumber.Length >= 4
+                ? int.Parse(request.CardNumber[^4..])
+                : 0;
             ExpiryMonth = request.ExpiryMonth;
             ExpiryYear = request.ExpiryYear;
             Currency = request.Currency;

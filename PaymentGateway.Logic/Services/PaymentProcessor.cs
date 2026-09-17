@@ -1,4 +1,6 @@
-﻿using PaymentGateway.Logic.Enums;
+﻿using System.ComponentModel.DataAnnotations;
+
+using PaymentGateway.Logic.Enums;
 using PaymentGateway.Logic.ExternalResources.Interfaces;
 using PaymentGateway.Logic.Models.Request;
 using PaymentGateway.Logic.Models.Response;
@@ -10,6 +12,14 @@ public class PaymentProcessor(IBankGateway _bankGateway) : IPaymentProcessor
 {
     public async Task<PaymentResponse> ProcessPaymentAsync(PaymentRequest paymentDetails)
     {
+        var validationContext = new ValidationContext(paymentDetails);
+        var validationResults = new List<ValidationResult>();
+
+        if (!Validator.TryValidateObject(paymentDetails, validationContext, validationResults, validateAllProperties: true))
+        {
+            return new PaymentResponse(paymentDetails, PaymentStatus.Rejected);
+        }
+
         var bankResponse = await _bankGateway.SendPaymentRequestAsync(paymentDetails);
 
         var response = new PaymentResponse(paymentDetails, PaymentStatus.Declined); 
@@ -18,10 +28,6 @@ public class PaymentProcessor(IBankGateway _bankGateway) : IPaymentProcessor
         {
             response.Status = PaymentStatus.Authorized;
         }
-
-        // Pass payment to Bank
-        // Save response to database.
-        // Return response to client.
 
         return response;
     }
