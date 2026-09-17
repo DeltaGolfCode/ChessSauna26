@@ -11,6 +11,9 @@
 *.sln.docstates
 *.env
 
+# Serilog file sink output
+logs/
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

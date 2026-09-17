@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/Copilot/" />
+  <Folder Name="/Copilot/Instructions/">
+    <File Path=".github/instructions/unittests.instructions.md" />
+  </Folder>
+  <Folder Name="/SolutionResources/">
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="docker-compose.yml" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/PaymentGateway.Logic.Tests/PaymentGateway.Logic.Tests.csproj" />
+  </Folder>
+  <Project Path="PaymentGateway.Api/PaymentGateway.Api.csproj" />
+  <Project Path="PaymentGateway.Logic/PaymentGateway.Logic.csproj" />
+</Solution>
