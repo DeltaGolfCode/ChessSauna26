@@ -9,15 +9,13 @@ using PaymentGateway.Logic.Models.Request;
 
 namespace PaymentGateway.Logic.ExternalResources;
 
-public class BankGateway(IHttpClientFactory httpClientFactory, ILogger<BankGateway> _logger) : IBankGateway
+public class BankGateway(IHttpClientFactory httpClientFactory, ILogger<BankGateway> logger) : IBankGateway
 {
-    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
-
     public async Task<BankPaymentResponse> SendPaymentRequestAsync(PaymentRequest paymentDetails)
     {
         try
         {
-            var client = _httpClientFactory.CreateClient("BankGateway");
+            var client = httpClientFactory.CreateClient("BankGateway");
 
             using var response = await client.PostAsJsonAsync("/payments", new BankPaymentRequest(paymentDetails));
             response.EnsureSuccessStatusCode();
@@ -27,7 +25,7 @@ public class BankGateway(IHttpClientFactory httpClientFactory, ILogger<BankGatew
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending payment request to bank gateway.");
+            logger.LogError(ex, "Error sending payment request to bank gateway.");
             return null;
         }
     }

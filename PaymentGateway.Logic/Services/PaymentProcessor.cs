@@ -10,7 +10,7 @@ using PaymentGateway.Logic.Services.Interfaces;
 
 namespace PaymentGateway.Logic.Services;
 
-public class PaymentProcessor(IBankGateway _bankGateway, IPaymentHistoryRepository _paymentHistoryRepository) : IPaymentProcessor
+public class PaymentProcessor(IBankGateway bankGateway, IPaymentHistoryRepository paymentHistoryRepository) : IPaymentProcessor
 {
     public async Task<PaymentResponse> ProcessPaymentAsync(PaymentRequest paymentDetails)
     {
@@ -25,7 +25,7 @@ public class PaymentProcessor(IBankGateway _bankGateway, IPaymentHistoryReposito
         }
         else
         {
-            var bankResponse = await _bankGateway.SendPaymentRequestAsync(paymentDetails);
+            var bankResponse = await bankGateway.SendPaymentRequestAsync(paymentDetails);
 
             paymentResponse = new PaymentResponse(paymentDetails, PaymentStatus.Declined);
 
@@ -40,7 +40,7 @@ public class PaymentProcessor(IBankGateway _bankGateway, IPaymentHistoryReposito
             }
         }
 
-        await _paymentHistoryRepository.CreateAsync(new PaymentHistory
+        await paymentHistoryRepository.CreateAsync(new PaymentHistory
         {
             Id = paymentResponse.Id,
             Status = paymentResponse.Status,
@@ -52,7 +52,7 @@ public class PaymentProcessor(IBankGateway _bankGateway, IPaymentHistoryReposito
 
     public async Task<PaymentResponse?> RetrievePaymentInformationAsync(Guid paymentReference)
     {
-        var paymentHistory = await _paymentHistoryRepository.GetByIdAsync(paymentReference);
+        var paymentHistory = await paymentHistoryRepository.GetByIdAsync(paymentReference);
         return paymentHistory?.Payment;
     }
 }

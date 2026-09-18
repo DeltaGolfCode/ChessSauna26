@@ -4,13 +4,8 @@ using PaymentGateway.Logic.DataAccess.DataModels;
 
 namespace PaymentGateway.Logic.DataAccess.EntityMapping;
 
-public class PaymentGatewayDbContext : DbContext
+public class PaymentGatewayDbContext(DbContextOptions<PaymentGatewayDbContext> options) : DbContext(options)
 {
-    public PaymentGatewayDbContext(DbContextOptions<PaymentGatewayDbContext> options)
-        : base(options)
-    {
-    }
-
     public DbSet<PaymentHistory> PaymentHistories => Set<PaymentHistory>();
 
     public DbSet<PaymentStatusLookup> PaymentStatuses => Set<PaymentStatusLookup>();

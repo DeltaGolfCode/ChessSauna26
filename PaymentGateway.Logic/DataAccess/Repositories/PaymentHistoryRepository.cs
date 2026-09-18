@@ -6,19 +6,19 @@ using PaymentGateway.Logic.DataAccess.Interfaces;
 
 namespace PaymentGateway.Logic.DataAccess.Repositories;
 
-public class PaymentHistoryRepository(PaymentGatewayDbContext _dbContext) : IPaymentHistoryRepository
+public class PaymentHistoryRepository(PaymentGatewayDbContext dbContext) : IPaymentHistoryRepository
 {
     public async Task<PaymentHistory> CreateAsync(PaymentHistory paymentHistory, CancellationToken cancellationToken = default)
     {
-        _dbContext.PaymentHistories.Add(paymentHistory);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        dbContext.PaymentHistories.Add(paymentHistory);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return paymentHistory;
     }
 
     public async Task<PaymentHistory?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.PaymentHistories
+        return await dbContext.PaymentHistories
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
