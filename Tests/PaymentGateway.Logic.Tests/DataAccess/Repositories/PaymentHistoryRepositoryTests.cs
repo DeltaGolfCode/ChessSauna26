@@ -96,7 +96,7 @@ public class PaymentHistoryRepositoryTests
             {
                 Id = id,
                 Status = status,
-                CardNumberLastFour = 9012,
+                CardNumberLastFour = "9012",
                 ExpiryMonth = 12,
                 ExpiryYear = DateTime.UtcNow.Year + 1,
                 Currency = "GBP",

@@ -9,20 +9,18 @@ using PaymentGateway.Logic.Services.Interfaces;
 using Serilog;
 using Serilog.Filters;
 
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSerilog((services, loggerConfiguration) => loggerConfiguration
+    .ReadFrom.Configuration(builder.Configuration)
+    .ReadFrom.Services(services)
     .Enrich.FromLogContext()
     .WriteTo.Logger(requestLog => requestLog
         .Filter.ByIncludingOnly(Matching.FromSource("Serilog.AspNetCore.RequestLoggingMiddleware"))
         .WriteTo.File("logs/requests-.log", rollingInterval: RollingInterval.Day))
     .WriteTo.Logger(applicationLog => applicationLog
         .Filter.ByExcluding(Matching.FromSource("Serilog.AspNetCore.RequestLoggingMiddleware"))
-        .WriteTo.File("logs/application-.log", rollingInterval: RollingInterval.Day))
-    .CreateLogger();
-
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Host.UseSerilog();
+        .WriteTo.File("logs/application-.log", rollingInterval: RollingInterval.Day)));
 
 builder.Services.AddOpenApi();
 builder.Services.RegisterPaymentGatewayLogic();
@@ -61,10 +59,7 @@ app.UseHttpsRedirection();
 app.MapPost("api/payments", async (PaymentRequest request, IPaymentProcessor processingLogic) =>
 {
     var result = await processingLogic.ProcessPaymentAsync(request);
-    return new
-    {
-        Message = result
-    };
+    return result;
 })
 .WithName("ProcessPayment");
 

@@ -29,9 +29,14 @@ public class PaymentProcessor(IBankGateway _bankGateway, IPaymentHistoryReposito
 
             paymentResponse = new PaymentResponse(paymentDetails, PaymentStatus.Declined);
 
-            if (bankResponse.Authorized)
+            if (bankResponse?.Authorized == true)
             {
                 paymentResponse.Status = PaymentStatus.Authorized;
+            }
+
+            if(bankResponse is null)
+            {
+                paymentResponse.Status = PaymentStatus.Rejected;
             }
         }
 

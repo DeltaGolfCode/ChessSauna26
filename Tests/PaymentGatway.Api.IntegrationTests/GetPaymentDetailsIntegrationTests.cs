@@ -31,7 +31,7 @@ namespace PaymentGatway.Api.IntegrationTests
                 ExpiryYear = _random.Next(2023, 2030),
                 ExpiryMonth = _random.Next(1, 12),
                 Amount = _random.Next(1, 10000),
-                CardNumberLastFour = _random.Next(1111, 9999),
+                CardNumberLastFour = _random.Next(0, 10000).ToString("D4"),
                 Currency = "GBP"
             };
 
@@ -46,6 +46,46 @@ namespace PaymentGatway.Api.IntegrationTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(paymentResponse);
+
+            Assert.Multiple(
+                () => Assert.Equal(payment.Id, paymentResponse.Id),
+                () => Assert.Equal(payment.Status, paymentResponse.Status),
+                () => Assert.Equal(payment.CardNumberLastFour, paymentResponse.CardNumberLastFour),
+                () => Assert.Equal(payment.ExpiryMonth, paymentResponse.ExpiryMonth),
+                () => Assert.Equal(payment.ExpiryYear, paymentResponse.ExpiryYear),
+                () => Assert.Equal(payment.Currency, paymentResponse.Currency),
+                () => Assert.Equal(payment.Amount, paymentResponse.Amount));
+        }
+
+        [Fact]
+        public async Task PreservesLeadingZerosInCardNumberLastFour()
+        {
+            // Arrange
+            using var factory = CreateFactory();
+
+            var payment = new PaymentResponse
+            {
+                Id = Guid.NewGuid(),
+                Status = PaymentStatus.Authorized,
+                ExpiryYear = 2030,
+                ExpiryMonth = 12,
+                Amount = 100,
+                CardNumberLastFour = "0012",
+                Currency = "GBP"
+            };
+
+            await SeedPaymentAsync(factory, payment);
+
+            var client = factory.CreateClient();
+
+            // Act
+            var response = await client.GetAsync($"/api/payments/{payment.Id}");
+            var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentResponse>();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(paymentResponse);
+            Assert.Equal("0012", paymentResponse.CardNumberLastFour);
         }
 
         [Fact]

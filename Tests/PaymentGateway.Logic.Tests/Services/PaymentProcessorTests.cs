@@ -93,10 +93,53 @@ public class PaymentProcessorTests
     }
 
     [Fact]
-    public async Task ProcessPaymentAsync_ValidRequest_ReturnsResponseWithCorrectCardNumberLastFour()
+    public async Task ProcessPaymentAsync_BankReturnsNoResponse_ReturnsRejected()
     {
         // Arrange
         var request = CreateValidPaymentRequest();
+
+        var bankGateway = Substitute.For<IBankGateway>();
+        bankGateway.SendPaymentRequestAsync(request).Returns((BankPaymentResponse)null!);
+
+        var processor = CreateProcessor(bankGateway);
+
+        // Act
+        var response = await processor.ProcessPaymentAsync(request);
+
+        // Assert
+        Assert.Equal(PaymentStatus.Rejected, response.Status);
+    }
+
+    [Fact]
+    public async Task ProcessPaymentAsync_BankReturnsNoResponse_SavesRejectedPaymentToHistory()
+    {
+        // Arrange
+        var request = CreateValidPaymentRequest();
+
+        var bankGateway = Substitute.For<IBankGateway>();
+        bankGateway.SendPaymentRequestAsync(request).Returns((BankPaymentResponse)null!);
+
+        var paymentHistoryRepository = Substitute.For<IPaymentHistoryRepository>();
+        var processor = CreateProcessor(bankGateway, paymentHistoryRepository);
+
+        // Act
+        var response = await processor.ProcessPaymentAsync(request);
+
+        // Assert
+        await paymentHistoryRepository.Received(1).CreateAsync(Arg.Is<PaymentHistory>(h =>
+            h.Id == response.Id &&
+            h.Status == PaymentStatus.Rejected &&
+            h.Payment == response));
+    }
+
+    [Theory]
+    [InlineData("4532123456789012", "9012")]
+    [InlineData("4532123456780012", "0012")]
+    public async Task ProcessPaymentAsync_ValidRequest_ReturnsResponseWithCorrectCardNumberLastFour(string cardNumber, string expectedLastFour)
+    {
+        // Arrange
+        var request = CreateValidPaymentRequest();
+        request.CardNumber = cardNumber;
         var bankResponse = new BankPaymentResponse { Authorized = true };
 
         var bankGateway = Substitute.For<IBankGateway>();
@@ -108,7 +151,46 @@ public class PaymentProcessorTests
         var response = await processor.ProcessPaymentAsync(request);
 
         // Assert
-        Assert.Equal(9012, response.CardNumberLastFour);
+        Assert.Equal(expectedLastFour, response.CardNumberLastFour);
+    }
+
+    [Theory]
+    [InlineData("4532A23456789012")]
+    [InlineData("453212345678901A")]
+    public async Task ProcessPaymentAsync_CardNumberContainsLetter_DoesNotThrow(string cardNumber)
+    {
+        // Arrange
+        var request = CreateValidPaymentRequest();
+        request.CardNumber = cardNumber;
+
+        var bankGateway = Substitute.For<IBankGateway>();
+        var processor = CreateProcessor(bankGateway);
+
+        // Act
+        var exception = await Record.ExceptionAsync(() => processor.ProcessPaymentAsync(request));
+
+        // Assert
+        Assert.Null(exception);
+    }
+
+    [Theory]
+    [InlineData("4532A23456789012")]
+    [InlineData("453212345678901A")]
+    public async Task ProcessPaymentAsync_CardNumberContainsLetter_ReturnsRejectedWithoutCallingBank(string cardNumber)
+    {
+        // Arrange
+        var request = CreateValidPaymentRequest();
+        request.CardNumber = cardNumber;
+
+        var bankGateway = Substitute.For<IBankGateway>();
+        var processor = CreateProcessor(bankGateway);
+
+        // Act
+        var response = await processor.ProcessPaymentAsync(request);
+
+        // Assert
+        Assert.Equal(PaymentStatus.Rejected, response.Status);
+        await bankGateway.DidNotReceive().SendPaymentRequestAsync(Arg.Any<PaymentRequest>());
     }
 
     [Fact]
@@ -151,7 +233,7 @@ public class PaymentProcessorTests
         // Assert
         Assert.Multiple(
             () => Assert.NotEqual(Guid.Empty, response.Id),
-            () => Assert.Equal(0, response.CardNumberLastFour),
+            () => Assert.Equal(string.Empty, response.CardNumberLastFour),
             () => Assert.Equal(PaymentStatus.Rejected, response.Status));
     }
 

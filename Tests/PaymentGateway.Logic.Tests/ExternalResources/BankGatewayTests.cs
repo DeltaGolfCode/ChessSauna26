@@ -2,6 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Json;
 
+using Microsoft.Extensions.Logging;
+
 using NSubstitute;
 
 using PaymentGateway.Logic.ExternalResources;
@@ -22,12 +24,14 @@ public class BankGatewayTests
         {
             Content = JsonContent.Create(responseBody)
         };
-        var (gateway, _) = CreateGateway(httpResponse);
+        var (gateway, _, _) = CreateGateway(httpResponse);
 
         // Act
         var result = await gateway.SendPaymentRequestAsync(CreateValidPaymentRequest());
 
         // Assert
+        Assert.NotNull(result);
+
         Assert.Multiple(
             () => Assert.True(result.Authorized),
             () => Assert.Equal("ABC123", result.AuthorizationCode));
@@ -41,7 +45,7 @@ public class BankGatewayTests
         {
             Content = JsonContent.Create(new BankPaymentResponse { Authorized = true })
         };
-        var (gateway, handler) = CreateGateway(httpResponse);
+        var (gateway, handler, _) = CreateGateway(httpResponse);
 
         // Act
         await gateway.SendPaymentRequestAsync(CreateValidPaymentRequest());
@@ -65,7 +69,7 @@ public class BankGatewayTests
 
         var httpClientFactory = Substitute.For<IHttpClientFactory>();
         httpClientFactory.CreateClient("BankGateway").Returns(httpClient);
-        var gateway = new BankGateway(httpClientFactory);
+        var gateway = new BankGateway(httpClientFactory, Substitute.For<ILogger<BankGateway>>());
 
         // Act
         await gateway.SendPaymentRequestAsync(CreateValidPaymentRequest());
@@ -75,30 +79,106 @@ public class BankGatewayTests
     }
 
     [Fact]
-    public async Task SendPaymentRequestAsync_ErrorStatusCode_ThrowsHttpRequestException()
-    {
-        // Arrange
-        var httpResponse = new HttpResponseMessage(HttpStatusCode.InternalServerError);
-        var (gateway, _) = CreateGateway(httpResponse);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<HttpRequestException>(() => gateway.SendPaymentRequestAsync(CreateValidPaymentRequest()));
-    }
-
-    [Fact]
-    public async Task SendPaymentRequestAsync_EmptyResponseBody_ThrowsInvalidOperationException()
+    public async Task SendPaymentRequestAsync_SuccessfulResponse_DoesNotLog()
     {
         // Arrange
         var httpResponse = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StringContent("null", System.Text.Encoding.UTF8, "application/json")
+            Content = JsonContent.Create(new BankPaymentResponse { Authorized = true })
         };
-        var (gateway, _) = CreateGateway(httpResponse);
+        var (gateway, _, logger) = CreateGateway(httpResponse);
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => gateway.SendPaymentRequestAsync(CreateValidPaymentRequest()));
-        Assert.Equal("Empty response from bank.", exception.Message);
+        // Act
+        await gateway.SendPaymentRequestAsync(CreateValidPaymentRequest());
+
+        // Assert
+        Assert.DoesNotContain(logger.ReceivedCalls(), call => call.GetMethodInfo().Name == nameof(ILogger.Log));
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task SendPaymentRequestAsync_ErrorStatusCode_ReturnsNull(HttpStatusCode statusCode)
+    {
+        // Arrange
+        var httpResponse = new HttpResponseMessage(statusCode);
+        var (gateway, _, _) = CreateGateway(httpResponse);
+
+        // Act
+        var result = await gateway.SendPaymentRequestAsync(CreateValidPaymentRequest());
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task SendPaymentRequestAsync_ErrorStatusCode_LogsHttpRequestExceptionAsError()
+    {
+        // Arrange
+        var httpResponse = new HttpResponseMessage(HttpStatusCode.InternalServerError);
+        var (gateway, _, logger) = CreateGateway(httpResponse);
+
+        // Act
+        await gateway.SendPaymentRequestAsync(CreateValidPaymentRequest());
+
+        // Assert
+        var logArguments = Assert.Single(logger.ReceivedCalls(), call => call.GetMethodInfo().Name == nameof(ILogger.Log))
+            .GetArguments();
+
+        Assert.Multiple(
+            () => Assert.Equal(LogLevel.Error, logArguments[0]),
+            () => Assert.IsType<HttpRequestException>(logArguments[3]));
+    }
+
+    [Fact]
+    public async Task SendPaymentRequestAsync_EmptyResponseBody_ReturnsNull()
+    {
+        // Arrange
+        var (gateway, _, _) = CreateGateway(CreateEmptyBodyResponse());
+
+        // Act
+        var result = await gateway.SendPaymentRequestAsync(CreateValidPaymentRequest());
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task SendPaymentRequestAsync_EmptyResponseBody_LogsInvalidOperationExceptionAsError()
+    {
+        // Arrange
+        var (gateway, _, logger) = CreateGateway(CreateEmptyBodyResponse());
+
+        // Act
+        await gateway.SendPaymentRequestAsync(CreateValidPaymentRequest());
+
+        // Assert
+        var logArguments = Assert.Single(logger.ReceivedCalls(), call => call.GetMethodInfo().Name == nameof(ILogger.Log))
+            .GetArguments();
+        var exception = Assert.IsType<InvalidOperationException>(logArguments[3]);
+
+        Assert.Multiple(
+            () => Assert.Equal(LogLevel.Error, logArguments[0]),
+            () => Assert.Equal("Empty response from bank.", exception.Message));
+    }
+
+    [Fact]
+    public async Task SendPaymentRequestAsync_BankUnreachable_ReturnsNull()
+    {
+        // Arrange
+        var handler = new ThrowingHttpMessageHandler(new HttpRequestException("Connection refused"));
+        var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://bank.test") };
+
+        var httpClientFactory = Substitute.For<IHttpClientFactory>();
+        httpClientFactory.CreateClient("BankGateway").Returns(httpClient);
+        var gateway = new BankGateway(httpClientFactory, Substitute.For<ILogger<BankGateway>>());
+
+        // Act
+        var result = await gateway.SendPaymentRequestAsync(CreateValidPaymentRequest());
+
+        // Assert
+        Assert.Null(result);
     }
 
     private sealed class FakeHttpMessageHandler(HttpResponseMessage response) : HttpMessageHandler
@@ -109,6 +189,14 @@ public class BankGatewayTests
         {
             LastRequest = request;
             return Task.FromResult(response);
+        }
+    }
+
+    private sealed class ThrowingHttpMessageHandler(Exception exception) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            return Task.FromException<HttpResponseMessage>(exception);
         }
     }
 
@@ -125,7 +213,15 @@ public class BankGatewayTests
         };
     }
 
-    private static (BankGateway Gateway, FakeHttpMessageHandler Handler) CreateGateway(HttpResponseMessage response)
+    private static HttpResponseMessage CreateEmptyBodyResponse()
+    {
+        return new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("null", System.Text.Encoding.UTF8, "application/json")
+        };
+    }
+
+    private static (BankGateway Gateway, FakeHttpMessageHandler Handler, ILogger<BankGateway> Logger) CreateGateway(HttpResponseMessage response)
     {
         var handler = new FakeHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://bank.test") };
@@ -133,6 +229,8 @@ public class BankGatewayTests
         var httpClientFactory = Substitute.For<IHttpClientFactory>();
         httpClientFactory.CreateClient("BankGateway").Returns(httpClient);
 
-        return (new BankGateway(httpClientFactory), handler);
+        var logger = Substitute.For<ILogger<BankGateway>>();
+
+        return (new BankGateway(httpClientFactory, logger), handler, logger);
     }
 }

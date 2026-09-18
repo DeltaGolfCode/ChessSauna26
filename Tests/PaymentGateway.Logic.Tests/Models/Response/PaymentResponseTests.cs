@@ -40,22 +40,24 @@ public class PaymentResponseTests
             () => Assert.Equal(PaymentStatus.Authorized, response.Status));
     }
 
-    [Fact]
-    public void Constructor_CardNumberWithFourOrMoreDigits_ExtractsLastFourDigits()
+    [Theory]
+    [InlineData("4532123456789012", "9012")]
+    [InlineData("4532123456780012", "0012")]
+    public void Constructor_CardNumberWithFourOrMoreDigits_ExtractsLastFourDigits(string cardNumber, string expectedLastFour)
     {
         // Arrange
         var request = CreateValidPaymentRequest();
-        request.CardNumber = "4532123456789012";
+        request.CardNumber = cardNumber;
 
         // Act
         var response = new PaymentResponse(request, PaymentStatus.Authorized);
 
         // Assert
-        Assert.Equal(9012, response.CardNumberLastFour);
+        Assert.Equal(expectedLastFour, response.CardNumberLastFour);
     }
 
     [Fact]
-    public void Constructor_CardNumberShorterThanFourDigits_ReturnsZeroForLastFour()
+    public void Constructor_CardNumberShorterThanFourDigits_ReturnsEmptyForLastFour()
     {
         // Arrange
         var request = CreateValidPaymentRequest();
@@ -65,11 +67,11 @@ public class PaymentResponseTests
         var response = new PaymentResponse(request, PaymentStatus.Rejected);
 
         // Assert
-        Assert.Equal(0, response.CardNumberLastFour);
+        Assert.Equal(string.Empty, response.CardNumberLastFour);
     }
 
     [Fact]
-    public void Constructor_NullCardNumber_ReturnsZeroForLastFour()
+    public void Constructor_NullCardNumber_ReturnsEmptyForLastFour()
     {
         // Arrange
         var request = CreateValidPaymentRequest();
@@ -79,7 +81,7 @@ public class PaymentResponseTests
         var response = new PaymentResponse(request, PaymentStatus.Rejected);
 
         // Assert
-        Assert.Equal(0, response.CardNumberLastFour);
+        Assert.Equal(string.Empty, response.CardNumberLastFour);
     }
 
     [Fact]
