@@ -9,4 +9,3 @@ public enum PaymentStatus
     Declined,
     Rejected
 }
-

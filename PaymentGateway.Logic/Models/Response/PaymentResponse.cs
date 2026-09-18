@@ -6,7 +6,7 @@ namespace PaymentGateway.Logic.Models.Response
     public class PaymentResponse
     {
         public PaymentResponse()
-        {            
+        {
         }
 
         public PaymentResponse(PaymentRequest request, PaymentStatus status)

@@ -36,7 +36,7 @@ namespace PaymentGatway.Api.IntegrationTests
             var request = CreateValidPaymentRequest(cardNumber: "4000000000000001");
 
             // Act
-            var response = await client.PostAsJsonAsync("api/payments", request);
+            var response = await client.PostAsJsonAsync("api/payments", request, cancellationToken: TestContext.Current.CancellationToken);
             var paymentResponse = await ReadPaymentResponseAsync(response);
 
             // Assert
@@ -58,7 +58,7 @@ namespace PaymentGatway.Api.IntegrationTests
             var request = CreateValidPaymentRequest(cardNumber: "4000000000000002");
 
             // Act
-            var response = await client.PostAsJsonAsync("api/payments", request);
+            var response = await client.PostAsJsonAsync("api/payments", request, cancellationToken: TestContext.Current.CancellationToken);
             var paymentResponse = await ReadPaymentResponseAsync(response);
 
             // Assert
@@ -77,7 +77,7 @@ namespace PaymentGatway.Api.IntegrationTests
             var request = CreateValidPaymentRequest(cardNumber: "1234");
 
             // Act
-            var response = await client.PostAsJsonAsync("api/payments", request);
+            var response = await client.PostAsJsonAsync("api/payments", request, cancellationToken: TestContext.Current.CancellationToken);
             var paymentResponse = await ReadPaymentResponseAsync(response);
 
             // Assert
@@ -97,7 +97,7 @@ namespace PaymentGatway.Api.IntegrationTests
             var request = CreateValidPaymentRequest(cvv: "12");
 
             // Act
-            var response = await client.PostAsJsonAsync("api/payments", request);
+            var response = await client.PostAsJsonAsync("api/payments", request, cancellationToken: TestContext.Current.CancellationToken);
             var paymentResponse = await ReadPaymentResponseAsync(response);
 
             // Assert
@@ -118,7 +118,7 @@ namespace PaymentGatway.Api.IntegrationTests
             var request = CreateValidPaymentRequest(expiryMonth: lastMonth.Month, expiryYear: lastMonth.Year);
 
             // Act
-            var response = await client.PostAsJsonAsync("api/payments", request);
+            var response = await client.PostAsJsonAsync("api/payments", request, cancellationToken: TestContext.Current.CancellationToken);
             var paymentResponse = await ReadPaymentResponseAsync(response);
 
             // Assert
@@ -138,7 +138,7 @@ namespace PaymentGatway.Api.IntegrationTests
             var request = CreateValidPaymentRequest(currency: "XYZ");
 
             // Act
-            var response = await client.PostAsJsonAsync("api/payments", request);
+            var response = await client.PostAsJsonAsync("api/payments", request, cancellationToken: TestContext.Current.CancellationToken);
             var paymentResponse = await ReadPaymentResponseAsync(response);
 
             // Assert
@@ -162,7 +162,7 @@ namespace PaymentGatway.Api.IntegrationTests
             var request = CreateValidPaymentRequest(cardNumber: "4000000000000000");
 
             // Act
-            var response = await client.PostAsJsonAsync("api/payments", request);
+            var response = await client.PostAsJsonAsync("api/payments", request, cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
@@ -209,13 +209,7 @@ namespace PaymentGatway.Api.IntegrationTests
 
         private static async Task<PaymentResponse?> ReadPaymentResponseAsync(HttpResponseMessage response)
         {
-            var envelope = await response.Content.ReadFromJsonAsync<ProcessPaymentResponseEnvelope>(JsonOptions);
-            return envelope?.Message;
-        }
-
-        private sealed class ProcessPaymentResponseEnvelope
-        {
-            public PaymentResponse? Message { get; set; }
+            return await response.Content.ReadFromJsonAsync<PaymentResponse>(JsonOptions, TestContext.Current.CancellationToken);
         }
     }
 }

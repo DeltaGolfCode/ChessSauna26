@@ -24,7 +24,7 @@ public class PaymentProcessor(IBankGateway _bankGateway, IPaymentHistoryReposito
             paymentResponse = new PaymentResponse(paymentDetails, PaymentStatus.Rejected);
         }
         else
-        { 
+        {
             var bankResponse = await _bankGateway.SendPaymentRequestAsync(paymentDetails);
 
             paymentResponse = new PaymentResponse(paymentDetails, PaymentStatus.Declined);
@@ -34,7 +34,7 @@ public class PaymentProcessor(IBankGateway _bankGateway, IPaymentHistoryReposito
                 paymentResponse.Status = PaymentStatus.Authorized;
             }
 
-            if(bankResponse is null)
+            if (bankResponse is null)
             {
                 paymentResponse.Status = PaymentStatus.Rejected;
             }
@@ -56,4 +56,3 @@ public class PaymentProcessor(IBankGateway _bankGateway, IPaymentHistoryReposito
         return paymentHistory?.Payment;
     }
 }
-

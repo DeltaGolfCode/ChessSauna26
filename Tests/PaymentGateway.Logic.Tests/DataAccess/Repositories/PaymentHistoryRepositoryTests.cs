@@ -22,10 +22,10 @@ public class PaymentHistoryRepositoryTests
         var paymentHistory = CreatePaymentHistory(Guid.NewGuid());
 
         // Act
-        await repository.CreateAsync(paymentHistory);
+        await repository.CreateAsync(paymentHistory, TestContext.Current.CancellationToken);
 
         // Assert
-        var persisted = await dbContext.PaymentHistories.AsNoTracking().SingleAsync(x => x.Id == paymentHistory.Id);
+        var persisted = await dbContext.PaymentHistories.AsNoTracking().SingleAsync(x => x.Id == paymentHistory.Id, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(paymentHistory.Status, persisted.Status);
     }
 
@@ -38,7 +38,7 @@ public class PaymentHistoryRepositoryTests
         var paymentHistory = CreatePaymentHistory(Guid.NewGuid());
 
         // Act
-        var result = await repository.CreateAsync(paymentHistory);
+        var result = await repository.CreateAsync(paymentHistory, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Same(paymentHistory, result);
@@ -51,10 +51,10 @@ public class PaymentHistoryRepositoryTests
         await using var dbContext = CreateDbContext();
         var repository = new PaymentHistoryRepository(dbContext);
         var paymentHistory = CreatePaymentHistory(Guid.NewGuid(), PaymentStatus.Declined);
-        await repository.CreateAsync(paymentHistory);
+        await repository.CreateAsync(paymentHistory, TestContext.Current.CancellationToken);
 
         // Act
-        var result = await repository.GetByIdAsync(paymentHistory.Id);
+        var result = await repository.GetByIdAsync(paymentHistory.Id, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -71,7 +71,7 @@ public class PaymentHistoryRepositoryTests
         var repository = new PaymentHistoryRepository(dbContext);
 
         // Act
-        var result = await repository.GetByIdAsync(Guid.NewGuid());
+        var result = await repository.GetByIdAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Null(result);

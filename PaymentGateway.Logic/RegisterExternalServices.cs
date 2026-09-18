@@ -10,7 +10,7 @@ public static class RegisterExternalServices
         services.AddHttpClient("BankGateway", client =>
         {
             var bankGatewayConfig = configuration.GetSection("Services:BankGateway");
-            var baseUrl = bankGatewayConfig["BaseUrl"] 
+            var baseUrl = bankGatewayConfig["BaseUrl"]
                 ?? throw new InvalidOperationException("BankGateway BaseUrl is not configured in appsettings.json");
             var timeoutSeconds = bankGatewayConfig.GetValue<int>("TimeoutSeconds", 10);
 

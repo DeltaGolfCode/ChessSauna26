@@ -20,4 +20,4 @@ public class PaymentGatewayDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PaymentGatewayDbContext).Assembly);
     }
-}    
+}

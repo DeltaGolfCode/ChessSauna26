@@ -40,8 +40,8 @@ namespace PaymentGatway.Api.IntegrationTests
             var client = factory.CreateClient();
 
             // Act
-            var response = await client.GetAsync($"/api/payments/{payment.Id}");
-            var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentResponse>();
+            var response = await client.GetAsync($"/api/payments/{payment.Id}", TestContext.Current.CancellationToken);
+            var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentResponse>(cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -79,8 +79,8 @@ namespace PaymentGatway.Api.IntegrationTests
             var client = factory.CreateClient();
 
             // Act
-            var response = await client.GetAsync($"/api/payments/{payment.Id}");
-            var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentResponse>();
+            var response = await client.GetAsync($"/api/payments/{payment.Id}", TestContext.Current.CancellationToken);
+            var paymentResponse = await response.Content.ReadFromJsonAsync<PaymentResponse>(cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -96,7 +96,7 @@ namespace PaymentGatway.Api.IntegrationTests
             var client = factory.CreateClient();
 
             // Act
-            var response = await client.GetAsync($"/api/payments/{Guid.NewGuid()}");
+            var response = await client.GetAsync($"/api/payments/{Guid.NewGuid()}", TestContext.Current.CancellationToken);
 
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

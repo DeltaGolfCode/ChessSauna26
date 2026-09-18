@@ -129,7 +129,7 @@ public class PaymentProcessorTests
         await paymentHistoryRepository.Received(1).CreateAsync(Arg.Is<PaymentHistory>(h =>
             h.Id == response.Id &&
             h.Status == PaymentStatus.Rejected &&
-            h.Payment == response));
+            h.Payment == response), Arg.Any<CancellationToken>());
     }
 
     [Theory]
@@ -307,7 +307,7 @@ public class PaymentProcessorTests
         await paymentHistoryRepository.Received(1).CreateAsync(Arg.Is<PaymentHistory>(h =>
             h.Id == response.Id &&
             h.Status == PaymentStatus.Authorized &&
-            h.Payment == response));
+            h.Payment == response), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -328,7 +328,7 @@ public class PaymentProcessorTests
         await paymentHistoryRepository.Received(1).CreateAsync(Arg.Is<PaymentHistory>(h =>
             h.Id == response.Id &&
             h.Status == PaymentStatus.Rejected &&
-            h.Payment == response));
+            h.Payment == response), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -350,7 +350,7 @@ public class PaymentProcessorTests
 
         var bankGateway = Substitute.For<IBankGateway>();
         var paymentHistoryRepository = Substitute.For<IPaymentHistoryRepository>();
-        paymentHistoryRepository.GetByIdAsync(paymentReference).Returns(paymentHistory);
+        paymentHistoryRepository.GetByIdAsync(paymentReference, Arg.Any<CancellationToken>()).Returns(paymentHistory);
 
         var processor = CreateProcessor(bankGateway, paymentHistoryRepository);
 
@@ -369,7 +369,7 @@ public class PaymentProcessorTests
 
         var bankGateway = Substitute.For<IBankGateway>();
         var paymentHistoryRepository = Substitute.For<IPaymentHistoryRepository>();
-        paymentHistoryRepository.GetByIdAsync(paymentReference).Returns((PaymentHistory?)null);
+        paymentHistoryRepository.GetByIdAsync(paymentReference, Arg.Any<CancellationToken>()).Returns((PaymentHistory?)null);
 
         var processor = CreateProcessor(bankGateway, paymentHistoryRepository);
 
@@ -388,7 +388,7 @@ public class PaymentProcessorTests
 
         var bankGateway = Substitute.For<IBankGateway>();
         var paymentHistoryRepository = Substitute.For<IPaymentHistoryRepository>();
-        paymentHistoryRepository.GetByIdAsync(paymentReference).Returns((PaymentHistory?)null);
+        paymentHistoryRepository.GetByIdAsync(paymentReference, Arg.Any<CancellationToken>()).Returns((PaymentHistory?)null);
 
         var processor = CreateProcessor(bankGateway, paymentHistoryRepository);
 
@@ -396,7 +396,7 @@ public class PaymentProcessorTests
         await processor.RetrievePaymentInformationAsync(paymentReference);
 
         // Assert
-        await paymentHistoryRepository.Received(1).GetByIdAsync(paymentReference);
+        await paymentHistoryRepository.Received(1).GetByIdAsync(paymentReference, Arg.Any<CancellationToken>());
     }
 
     private static PaymentRequest CreateValidPaymentRequest()
@@ -419,4 +419,3 @@ public class PaymentProcessorTests
         return new PaymentProcessor(bankGateway, paymentHistoryRepository ?? Substitute.For<IPaymentHistoryRepository>());
     }
 }
-
